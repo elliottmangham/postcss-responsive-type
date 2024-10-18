@@ -1,152 +1,146 @@
 # PostCSS Responsive Type
-[![NPM version][npm-badge]][npm-url] [![NPM downloads][downloads-badge]][npm-url] [![Build Status][travis-badge]][travis-url]
 
-Generate automagical fluid typography, with new `responsive` properties for `font-size`, `line-height`, and `letter-spacing`. Built on [PostCSS][postcss].
+Note: This version is not tested with `line-height`, and `letter-spacing`. It is only suited for responsive `font-size`.
 
-![Responsive Type Demo][demo]
+## Changes
 
-Inspired by [this post][post].
+This fork of [https://github.com/madeleineostoja/postcss-responsive-type](postcss-responsive-type) includes the following changes:
 
-_Part of [Rucksack - CSS Superpowers](https://github.com/madeleineostoja/rucksack)_
+-   Removed the default container (`comp`) for container queries.
+-   When no specific container is defined using the `font-container` property, the plugin generates container queries that use the nearest ancestor with a containment context.
+-   Added support for specifying a custom container name using the `font-container` property.
+-   Retained the ability to use media queries by setting `font-container: media`.
 
-### Contents
+### Examples
 
-- [Usage](#usage)
-  - [Quick start](#quick-start)
-  - [Specify parameters](#specify-parameters)
-  - [Expanded syntax](#expanded-syntax)
-  - [Responsive `line-height` and `letter-spacing`](#responsive-line-height-and-letter-spacing)
-- [Defaults](#defaults)
-- [Browser Support](#browser-support)
-
-## Usage
-
-#### Quick start
+#### Using container queries with the nearest ancestor container
 
 ```css
-html {
-  font-size: responsive;
+.example-1 {
+	font-size: responsive 16px 24px;
+	font-range: 400px 800px;
 }
 ```
 
-> **Pro tip:** set a reaponsive font-size on `html` and use `rem` units throughout your project to make your whole UI fluid
+Generated CSS:
 
-#### Specify parameters
+```
+.example-1 {
+  font-size: calc(16px + 8 * ((100cqw - 400px) / 400));
+}
 
-Units can be in px, rem, or em. When using em units, be sure that the `font-range` is specified in em as well.
+@container (max-width: 400px) {
+  .example-1 {
+    font-size: 16px;
+  }
+}
 
-```css
-html {
-  font-size: responsive 12px 21px; /* min-size, max-size */
-  font-range: 420px 1280px; /* viewport widths between which font-size is fluid */
+@container (min-width: 800px) {
+  .example-1 {
+    font-size: 24px;
+  }
 }
 ```
 
-#### Expanded syntax
+#### Using container queries with a custom container name
 
-```css
-html {
-  font-size: responsive;
-  min-font-size: 12px;
-  max-font-size: 21px;
-  lower-font-range: 420px;
-  upper-font-range: 1280px;
+```
+.example-2 {
+  font-size: responsive 20px 32px;
+  font-range: 600px 1200px;
+  font-container: my-container;
 }
 ```
 
-#### Responsive `line-height` and `letter-spacing`
+Generated CSS:
 
-PostCSS Responsive Type also allows you to set fluid sizes for the `line-height` and `letter-spacing` properties. They have the same syntax and work the same way as responsive font sizes.
+```
+.example-2 {
+  font-size: calc(20px + 12 * ((100cqw - 600px) / 600));
+}
 
-```css
-html {
-  line-height: responsive 1.2em 1.8em;
-  line-height-range: 420px 1280px;
+@container my-container (max-width: 600px) {
+  .example-2 {
+    font-size: 20px;
+  }
+}
 
-  /* or extended syntax: */
-  line-height: responsive;
-  min-line-height: 1.2em;
-  max-line-height: 1.8em;
-  lower-line-height-range: 420px;
-  upper-line-height-range: 1280px;
+@container my-container (min-width: 1200px) {
+  .example-2 {
+    font-size: 32px;
+  }
 }
 ```
 
-```css
-html {
-  letter-spacing: responsive 0px 4px;
-  letter-spacing-range: 420px 1280px;
+#### Using media queries (the behaviour of the original postcss-responsive-type)
 
-  /* or extended syntax: */
-  letter-spacing: responsive;
-  min-letter-spacing: 0px;
-  max-letter-spacing: 4px;
-  lower-letter-spacing-range: 420px;
-  upper-letter-spacing-range: 1280px;
+```
+.example-3 {
+  font-size: responsive 14px 18px;
+  font-range: 300px 600px;
+  font-container: media;
 }
 ```
 
-> **Note:** Unitless line heights are not supported.
+Generated CSS:
 
-## Defaults
-To get started you only need to specify the `responsive` property, all other values have sane defaults.
+```
+.example-3 {
+  font-size: calc(14px + 4 * ((100vw - 300px) / 300));
+}
 
-##### `font-size`
+@media screen and (max-width: 300px) {
+  .example-3 {
+    font-size: 14px;
+  }
+}
 
-- `min-font-size`: 14px
-
-- `max-font-size`: 21px
-
-- `lower-font-range`: 420px
-
-- `upper-font-range`: 1280px
-
-
-##### `line-height`
-
-- `min-line-height`: 1.2em
-
-- `max-line-height`: 1.8em
-
-- `lower-line-height-range`: 420px
-
-- `upper-line-height-range`: 1280px
-
-
-##### `letter-spacing`
-
-- `min-letter-spacing`: 0px
-
-- `max-letter-spacing`: 4px
-
-- `lower-letter-spacing-range`: 420px
-
-- `upper-letter-spacing-range`: 1280px
-
-
-## Browser Support
-
-`postcss-responsive-type` just uses calc, vw units, and media queries behind the scenes, so it works on all modern browsers (IE9+). Although Opera Mini is not supported.
-
-Legacy browsers will ignore the output `responsive` font-size. You can easily provide a simple static fallback:
-
-```css
-.foo {
-  font-size: 16px;
-  font-size: responsive;
+@media screen and (min-width: 600px) {
+  .example-3 {
+    font-size: 18px;
+  }
 }
 ```
 
-***
+## Installation
 
-MIT © [Sean King](https://twitter.com/seaneking)
+Please note that this forked version of` postcss-responsive-type` is not yet available on npm.
 
-[npm-badge]: https://img.shields.io/npm/v/postcss-responsive-type.svg
-[npm-url]: https://npmjs.org/package/postcss-responsive-type
-[downloads-badge]: https://img.shields.io/npm/dm/postcss-responsive-type.svg
-[travis-badge]: https://travis-ci.org/seaneking/postcss-responsive-type.svg?branch=master
-[travis-url]: https://travis-ci.org/seaneking/postcss-responsive-type
-[PostCSS]: https://github.com/postcss/postcss
-[demo]: /demo.gif?raw=true
-[post]: http://madebymike.com.au/writing/precise-control-responsive-typography/
-[poststylus]: https://github.com/seaneking/poststylus
+To install this forked version, you can use one of the following methods:
+
+1.  Install from GitHub repository:
+
+-   Add the following line to your project's `package.json` file:
+
+```
+"postcss-responsive-type": "github:elliottmangham/postcss-responsive-type"
+```
+
+-   Run `npm install` to install the plugin from the GitHub repository.
+
+2.  Install from a local path:
+
+-   Clone the forked repository to your local machine:
+
+```
+git clone https://github.com/elliottmangham/postcss-responsive-type.git
+```
+
+-   Add the following line to your project's package.json file, replacing `path/to/postcss-responsive-type` with the actual path to your cloned repository:
+
+```
+"postcss-responsive-type": "file:path/to/postcss-responsive-type"
+```
+
+-   Run `npm install` to install the plugin from the local path.
+
+After installation, you can use the plugin in your PostCSS configuration file:
+
+```
+module.exports = {
+  plugins: [
+    require('postcss-responsive-type'),
+    // Other plugins...
+  ],
+};
+```
