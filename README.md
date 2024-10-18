@@ -6,7 +6,7 @@ Note: This version is not tested with `line-height`, and `letter-spacing`. It is
 
 This fork of [https://github.com/madeleineostoja/postcss-responsive-type](postcss-responsive-type) includes the following changes:
 
--   Removed the default container (`comp`) for container queries.
+-   Replaced `100vw` calculations and `@media` queries with `100cqw` calculations and `@container` queries.
 -   When no specific container is defined using the `font-container` property, the plugin generates container queries that use the nearest ancestor with a containment context.
 -   Added support for specifying a custom container name using the `font-container` property.
 -   Retained the ability to use media queries by setting `font-container: media`.
