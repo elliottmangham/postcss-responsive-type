@@ -171,16 +171,36 @@ function buildRules(rule, declName, params, result) {
 	sizeDiff = parseFloat(maxSize) - parseFloat(minSize);
 	rangeDiff = parseFloat(maxWidth) - parseFloat(minWidth);
 
-	if (fontContainer === 'media') {
-		rules.responsive =
-			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100vw - ' + minWidth + ') / ' + rangeDiff + '))';
-	} else {
+	if (fontContainer === 'true') {
 		rules.responsive =
 			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100cqw - ' + minWidth + ') / ' + rangeDiff + '))';
+	} else {
+		rules.responsive =
+			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100vw - ' + minWidth + ') / ' + rangeDiff + '))';
 	}
 
 	// Build the container queries or media queries
-	if (fontContainer === 'media') {
+	if (fontContainer === 'true') {
+		rules.minMedia = postcss.atRule({
+			name: 'container',
+			params: '(max-width: ' + params.minWidth + ')',
+		});
+
+		rules.maxMedia = postcss.atRule({
+			name: 'container',
+			params: '(min-width: ' + params.maxWidth + ')',
+		});
+	} else if (fontContainer && fontContainer !== 'true') {
+		rules.minMedia = postcss.atRule({
+			name: 'container',
+			params: fontContainer + ' (max-width: ' + params.minWidth + ')',
+		});
+
+		rules.maxMedia = postcss.atRule({
+			name: 'container',
+			params: fontContainer + ' (min-width: ' + params.maxWidth + ')',
+		});
+	} else {
 		rules.minMedia = postcss.atRule({
 			name: 'media',
 			params: 'screen and (max-width: ' + params.minWidth + ')',
@@ -189,16 +209,6 @@ function buildRules(rule, declName, params, result) {
 		rules.maxMedia = postcss.atRule({
 			name: 'media',
 			params: 'screen and (min-width: ' + params.maxWidth + ')',
-		});
-	} else {
-		rules.minMedia = postcss.atRule({
-			name: 'container',
-			params: (fontContainer ? fontContainer + ' ' : '') + '(max-width: ' + params.minWidth + ')',
-		});
-
-		rules.maxMedia = postcss.atRule({
-			name: 'container',
-			params: (fontContainer ? fontContainer + ' ' : '') + '(min-width: ' + params.maxWidth + ')',
 		});
 	}
 

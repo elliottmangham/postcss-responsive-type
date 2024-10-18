@@ -6,21 +6,21 @@
 
 This fork of [https://github.com/madeleineostoja/postcss-responsive-type](postcss-responsive-type) includes the following changes:
 
--   Replaced `vw` calculations with `cqw` and `@media` queries `@container` queries.
--   When no specific container is defined using the `font-container` property, the plugin generates container queries that use the nearest ancestor with a containment context.
--   Added support for specifying a custom container name using the `font-container` property.
--   Retained the ability to use media queries by setting `font-container: media`.
+-   By default, the plugin uses `vw` calculations and `@media` queries for responsive typography.
+-   When `font-container` is set to `'true'`, the plugin switches to using `cqw` calculations and `@container` queries with the nearest ancestor that has a containment context.
+-   When `font-container` is set to a custom value other than `'true'`, the plugin uses `cqw` calculations and `@container` queries with the specified container name.
+-   Retained the ability to use `vw` calculations and `@media` queries by not setting the `font-container` property or setting it to a value other than `'true'`.
 
 ## Why
 
-The changes made to postcss-responsive-type offer several benefits:
+The changes made to `postcss-responsive-type` offer flexibility and backward compatibility:
 
-1. **Container-based scaling:** By replacing vw calculations with cqw and using @container queries instead of @media queries, the font sizes are now scaled based on the size of the containing element rather than the entire viewport. This approach is more flexible and adaptable to different scenarios, such as CMS preview modes like WordPress block editor or Sanity, where the available space for content may be limited due to the presence of editing panels.
-2. **Nearest ancestor containment:** When no specific container is defined using the font-container property, the plugin automatically generates container queries that use the nearest ancestor with a containment context. This behaviour ensures that the font sizes are scaled relative to the closest containing element, providing a more predictable and consistent responsive typography experience.
-3. **Custom container support:** The addition of the font-container property allows you to specify a custom container name for the container queries. This feature gives you more control over which element serves as the reference for font size scaling, enabling you to target specific containers within your layout.
-4. **Backward compatibility:** Despite the focus on container queries, the forked version of postcss-responsive-type retains the ability to use media queries by setting font-container: media. This ensures backward compatibility with existing projects that rely on media query-based responsive typography, while still providing the option to leverage the benefits of container queries.
+1. **Default behavior:** By default, the plugin uses `vw` calculations and `@media` queries for responsive typography. This ensures backward compatibility with existing projects that rely on viewport-based scaling and media queries.
+2. **Container-based scaling:** When `font-container` is set to `'true'`, the plugin switches to using `cqw` calculations and `@container` queries. This allows for font sizes to be scaled based on the size of the containing element rather than the entire viewport. It provides flexibility in scenarios where the available space for content may be limited, such as CMS preview modes like WordPress block editor or Sanity.
+3. **Custom container support:** When `font-container` is set to a custom value other than `'true'`, the plugin uses `cqw` calculations and `@container` queries with the specified container name. This feature gives you control over which element serves as the reference for font size scaling, enabling you to target specific containers within your layout.
+4. **Flexibility and backward compatibility:** The changes made to `postcss-responsive-type` provide flexibility in choosing between viewport-based scaling with media queries and container-based scaling with container queries. By retaining the ability to use `vw` calculations and `@media` queries, the plugin ensures backward compatibility with existing projects while still offering the benefits of container queries when desired.
 
-By incorporating these changes, postcss-responsive-type now offers a more versatile and container-aware approach to responsive typography. It addresses the limitations of viewport-based scaling and provides a solution that works well in various scenarios, including CMS preview modes and complex layouts with multiple containers.
+These changes make `postcss-responsive-type` a versatile tool for responsive typography, catering to different project requirements and layouts. It allows developers to choose the appropriate scaling method based on their needs, whether it's viewport-based scaling with media queries or container-based scaling with container queries.
 
 ### Examples
 
