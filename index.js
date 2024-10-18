@@ -160,24 +160,49 @@ function buildRules(rule, declName, params, result) {
 		rule.warn(result, 'this combination of units is not supported');
 	}
 
-	// Build the responsive type decleration
+	// Check for the font-container property
+	let fontContainer = rule.parent.some((i) => i.prop === 'font-container');
+
+	if (fontContainer) {
+		fontContainer = rule.parent.find((i) => i.prop === 'font-container').value.trim();
+	}
+
+	// Build the responsive type declaration
 	sizeDiff = parseFloat(maxSize) - parseFloat(minSize);
 	rangeDiff = parseFloat(maxWidth) - parseFloat(minWidth);
 
-	rules.responsive = 'calc(' + minSize + ' + ' + sizeDiff + ' * ((100vw - ' + minWidth + ') / ' + rangeDiff + '))';
+	if (fontContainer === 'media') {
+		rules.responsive =
+			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100vw - ' + minWidth + ') / ' + rangeDiff + '))';
+	} else {
+		rules.responsive =
+			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100cqw - ' + minWidth + ') / ' + rangeDiff + '))';
+	}
 
-	// Build the media queries
-	rules.minMedia = postcss.atRule({
-		name: 'media',
-		params: 'screen and (max-width: ' + params.minWidth + ')',
-	});
+	// Build the container queries or media queries
+	if (fontContainer === 'media') {
+		rules.minMedia = postcss.atRule({
+			name: 'media',
+			params: 'screen and (max-width: ' + params.minWidth + ')',
+		});
 
-	rules.maxMedia = postcss.atRule({
-		name: 'media',
-		params: 'screen and (min-width: ' + params.maxWidth + ')',
-	});
+		rules.maxMedia = postcss.atRule({
+			name: 'media',
+			params: 'screen and (min-width: ' + params.maxWidth + ')',
+		});
+	} else {
+		rules.minMedia = postcss.atRule({
+			name: 'container',
+			params: (fontContainer ? fontContainer + ' ' : '') + '(max-width: ' + params.minWidth + ')',
+		});
 
-	// Add the required content to new media queries
+		rules.maxMedia = postcss.atRule({
+			name: 'container',
+			params: (fontContainer ? fontContainer + ' ' : '') + '(min-width: ' + params.maxWidth + ')',
+		});
+	}
+
+	// Add the required content to new container queries or media queries
 	rules.minMedia
 		.append({
 			selector: rule.selector,
@@ -221,7 +246,7 @@ const plugin = () => ({
 			rule.walkDecls(/^(font-size|line-height|letter-spacing)$/, (decl) => {
 				let params;
 
-				// If decl doesn't contain responsve keyword, exit
+				// If decl doesn't contain responsive keyword, exit
 				if (decl.value.indexOf('responsive') === -1) {
 					return;
 				}
@@ -230,12 +255,12 @@ const plugin = () => ({
 				params = fetchParams(thisRule, decl.prop);
 				newRules = buildRules(thisRule, decl.prop, params, result);
 
-				// Insert the base responsive decleration
+				// Insert the base responsive declaration
 				if (decl.value.indexOf('responsive') > -1) {
 					decl.replaceWith({ prop: decl.prop, value: newRules.responsive });
 				}
 
-				// Insert the media queries
+				// Insert the container queries or media queries
 				thisRule.parent.insertAfter(thisRule, newRules.minMedia);
 				thisRule.parent.insertAfter(thisRule, newRules.maxMedia);
 			});
