@@ -121,6 +121,12 @@ function fetchParams(rule, declName) {
 		});
 	});
 
+	// Fetch custom font-container property
+	rule.walkDecls('font-container', (decl) => {
+		params.container = decl.value.trim();
+		decl.remove(); // Remove font-container property from output
+	});
+
 	return params;
 }
 
@@ -140,7 +146,8 @@ function buildRules(rule, declName, params, result) {
 		widthUnit = getUnit(params.minWidth),
 		maxWidthUnit = getUnit(params.maxWidth),
 		sizeDiff,
-		rangeDiff;
+		rangeDiff,
+		container = params.container || '';
 
 	if (sizeUnit === null) {
 		throw rule.error('sizes with unitless values are not supported');
@@ -160,51 +167,30 @@ function buildRules(rule, declName, params, result) {
 		rule.warn(result, 'this combination of units is not supported');
 	}
 
-	// Check for the font-container property
-	let fontContainer = rule.parent.some((i) => i.prop === 'font-container');
-
-	if (fontContainer) {
-		let fontContainerDecl = rule.parent.find((i) => i.prop === 'font-container');
-		fontContainer = fontContainerDecl.value.trim();
-		fontContainerDecl.remove();
-	}
-
 	// Build the responsive type declaration
 	sizeDiff = parseFloat(maxSize) - parseFloat(minSize);
 	rangeDiff = parseFloat(maxWidth) - parseFloat(minWidth);
 
-	if (fontContainer === 'media') {
-		rules.responsive =
-			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100vw - ' + minWidth + ') / ' + rangeDiff + '))';
-	} else {
-		rules.responsive =
-			'calc(' + minSize + ' + ' + sizeDiff + ' * ((100cqw - ' + minWidth + ') / ' + rangeDiff + '))';
-	}
+	// Use cqw for container queries or vw for media queries
+	const unit = container === 'media' ? 'vw' : 'cqw';
 
-	// Build the container queries or media queries
-	if (fontContainer === 'media') {
-		rules.minMedia = postcss.atRule({
-			name: 'media',
-			params: 'screen and (max-width: ' + params.minWidth + ')',
-		});
+	rules.responsive = `calc(${minSize} + ${sizeDiff} * ((100${unit} - ${minWidth}) / ${rangeDiff}))`;
 
-		rules.maxMedia = postcss.atRule({
-			name: 'media',
-			params: 'screen and (min-width: ' + params.maxWidth + ')',
-		});
-	} else {
-		rules.minMedia = postcss.atRule({
-			name: 'container',
-			params: (fontContainer ? fontContainer + ' ' : '') + '(max-width: ' + params.minWidth + ')',
-		});
+	// Build the container or media queries
+	const queryType = container === 'media' ? 'media' : 'container';
+	const containerPrefix = container && container !== 'media' ? `${container} ` : '';
 
-		rules.maxMedia = postcss.atRule({
-			name: 'container',
-			params: (fontContainer ? fontContainer + ' ' : '') + '(min-width: ' + params.maxWidth + ')',
-		});
-	}
+	rules.minMedia = postcss.atRule({
+		name: queryType,
+		params: `${containerPrefix}(max-width: ${params.minWidth})`,
+	});
 
-	// Add the required content to new container queries or media queries
+	rules.maxMedia = postcss.atRule({
+		name: queryType,
+		params: `${containerPrefix}(min-width: ${params.maxWidth})`,
+	});
+
+	// Add the required content to new queries
 	rules.minMedia
 		.append({
 			selector: rule.selector,
@@ -262,7 +248,7 @@ const plugin = () => ({
 					decl.replaceWith({ prop: decl.prop, value: newRules.responsive });
 				}
 
-				// Insert the container queries or media queries
+				// Insert the media or container queries
 				thisRule.parent.insertAfter(thisRule, newRules.minMedia);
 				thisRule.parent.insertAfter(thisRule, newRules.maxMedia);
 			});
